@@ -11,7 +11,7 @@ module.exports = async function (context, req) {
         const eventDataBatch = await producerClient.createBatch();
         let wasAdded = eventDataBatch.tryAdd({ body: req.body });
         if (!wasAdded) {
-            break;
+            throw "Error trying to add event to batch"
         }
 
         await producerClient.sendBatch(eventDataBatch);
