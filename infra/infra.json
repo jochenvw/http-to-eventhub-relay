@@ -1,0 +1,104 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+    },
+    "functions": [
+    ],
+    "variables": {
+        "resource-functionstorage-name": "jvwrelayfunctionstore",
+        "resource-functionapp-name": "jvw-relay-function-dev",
+        "resource-appinsights-name": "jvw-relay-appinsights-dev",
+        "resource-functionapp-plan-name": "jvw-relay-function-host"
+    },
+    "resources": [
+
+          {
+            "apiVersion": "2018-11-01",
+            "name": "[variables('resource-functionapp-name')]",
+            "type": "Microsoft.Web/sites",
+            "kind": "functionapp,linux",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.insights/components/', variables('resource-appinsights-name'))]",
+                "[concat('Microsoft.Web/serverfarms/', variables('resource-functionapp-plan-name'))]",
+                "[concat('Microsoft.Storage/storageAccounts/', variables('resource-functionstorage-name'))]"
+            ],
+            "properties": {
+                "name": "[variables('resource-functionapp-name')]",
+                "siteConfig": {
+                    "appSettings": [
+                        {
+                            "name": "FUNCTIONS_EXTENSION_VERSION",
+                            "value": "~3"
+                        },
+                        {
+                            "name": "FUNCTIONS_WORKER_RUNTIME",
+                            "value": "node"
+                        },
+                        {
+                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                            "value": "[reference(resourceId('microsoft.insights/components/', variables('resource-appinsights-name')), '2015-05-01').InstrumentationKey]"
+                        },
+                        {
+                            "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                            "value": "[reference(resourceId('microsoft.insights/components/', variables('resource-appinsights-name')), '2015-05-01').ConnectionString]"
+                        },
+                        {
+                            "name": "AzureWebJobsStorage",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('resource-functionstorage-name'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('resource-functionstorage-name')), '2019-06-01').keys[0].value,';EndpointSuffix=','core.windows.net')]"
+                        }
+                    ],
+                    "linuxFxVersion": "Node|12"
+                },
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('resource-functionapp-plan-name'))]",
+                "hostingEnvironment": "",
+                "clientAffinityEnabled": false
+            }
+        },
+        {
+            "apiVersion": "2018-11-01",
+            "name": "[variables('resource-functionapp-plan-name')]",
+            "type": "Microsoft.Web/serverfarms",
+            "location": "[resourceGroup().location]",
+            "kind": "linux",
+            "properties": {
+                "name": "[variables('resource-functionapp-plan-name')]",
+                "workerSize": "0",
+                "workerSizeId": "0",
+                "numberOfWorkers": "1",
+                "reserved": true,
+                "hostingEnvironment": ""
+            },
+            "sku": {
+                "Tier": "Dynamic",
+                "Name": "Y1"
+            }
+        },
+        {
+            "apiVersion": "2015-05-01",
+            "name": "[variables('resource-appinsights-name')]",
+            "type": "microsoft.insights/components",
+            "location": "westeurope",
+            "tags": null,
+            "properties": {
+                "ApplicationId": "[variables('resource-functionapp-name')]",
+                "Request_Source": "IbizaWebAppExtensionCreate"
+            }
+        },
+        {
+            "apiVersion": "2019-06-01",
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[variables('resource-functionstorage-name')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "properties": {
+                "supportsHttpsTrafficOnly": true
+            }
+        }
+    ],
+    "outputs": {
+    }
+}
