@@ -49,14 +49,14 @@ stages:
         replaceExistingArchive: true
 
     - task: PublishBuildArtifacts@1
-      displayName: 'Publish Artifact to Azure DevOps'
+      displayName: 'Publish function app files to artifacts'
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
         ArtifactName: 'app'
         publishLocation: 'Container'
 
     - task: PublishBuildArtifacts@1
-      displayName: 'Publish Artifact to Azure DevOps'
+      displayName: 'Publish function ARM templates files to artifacts'
       inputs:
         PathtoPublish: '$(System.DefaultWorkingDirectory)/infra'
         ArtifactName: 'infra'
@@ -82,11 +82,6 @@ stages:
           artifactName: 'infra'
           downloadType: 'single'
           downloadPath: '$(System.ArtifactsDirectory)'
-
-      - task: Bash@3
-        inputs:
-          targetType: 'inline'
-          script: 'find /home/vsts/work'
 
       - task: AzureResourceManagerTemplateDeployment@3
         displayName: 'Deploy Azure resources'
