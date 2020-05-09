@@ -64,14 +64,14 @@ stages:
           buildType: 'current'
           artifactName: 'app'
           downloadType: 'single'
-          downloadPath: '$(System.ArtifactsDirectory)/app'
+          downloadPath: '$(System.ArtifactsDirectory)'
 
       - task: DownloadBuildArtifacts@0
         inputs:
           buildType: 'current'
           artifactName: 'infra'
           downloadType: 'single'
-          downloadPath: '$(System.ArtifactsDirectory)/infra'
+          downloadPath: '$(System.ArtifactsDirectory)'
 
       - task: AzureResourceManagerTemplateDeployment@3
         displayName: 'Deploy Azure resources'
