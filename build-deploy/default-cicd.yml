@@ -49,7 +49,10 @@ stages:
         replaceExistingArchive: true
 
     - upload: $(Build.ArtifactStagingDirectory)/relay-app-#$(Build.BuildId).zip
-      artifact: drop
+      artifact: app
+
+    - upload: $(System.DefaultWorkingDirectory)/infra
+      artifact: infra
 
 - stage: Deployment
   displayName: 'Deploy application'
@@ -82,4 +85,4 @@ stages:
           azureSubscription: '$(serviceConnection)'
           appType: 'functionAppLinux'
           appName: 'jvw-relay-func-dev'
-          package: '$(System.ArtifactsDirectory)/*.zip'
+          package: '$(System.ArtifactsDirectory)/app/relay-app-#$(Build.BuildId).zip'
