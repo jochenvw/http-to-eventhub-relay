@@ -49,9 +49,11 @@ stages:
         replaceExistingArchive: true
 
     - upload: $(Build.ArtifactStagingDirectory)/relay-app-#$(Build.BuildId).zip
+      displayName: 'Upload application files to artifact repository'
       artifact: app
 
     - upload: $(System.DefaultWorkingDirectory)/infra
+      displayName: 'Upload Azure ARM infrastructure files to artifact repository'
       artifact: infra
 
 - stage: Deployment
@@ -60,6 +62,7 @@ stages:
     - job : DEV
       steps:
       - task: DownloadBuildArtifacts@0
+        displayName: 'Downloading application files'
         inputs:
           buildType: 'current'
           artifactName: 'app'
@@ -67,11 +70,17 @@ stages:
           downloadPath: '$(System.ArtifactsDirectory)'
 
       - task: DownloadBuildArtifacts@0
+        displayName: 'Downloading Azure ARM infrastructure files'
         inputs:
           buildType: 'current'
           artifactName: 'infra'
           downloadType: 'single'
           downloadPath: '$(System.ArtifactsDirectory)'
+
+      - task: Bash@3
+        inputs:
+          targetType: 'inline'
+          script: 'tree -d $(System.ArtifactsDirectory)'
 
       - task: AzureResourceManagerTemplateDeployment@3
         displayName: 'Deploy Azure resources'
