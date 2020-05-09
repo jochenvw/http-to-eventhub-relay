@@ -45,7 +45,7 @@ stages:
         rootFolderOrFile: '$(System.DefaultWorkingDirectory)/src/functions'
         includeRootFolder: false
         archiveType: zip
-        archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+        archiveFile: $(Build.ArtifactStagingDirectory)/app-#$(Build.BuildId).zip
         replaceExistingArchive: true
 
     - upload: $(Build.ArtifactStagingDirectory)/app-#$(Build.BuildId).zip
