@@ -48,13 +48,19 @@ stages:
         archiveFile: $(Build.ArtifactStagingDirectory)/relay-app-#$(Build.BuildId).zip
         replaceExistingArchive: true
 
-    - upload: $(Build.ArtifactStagingDirectory)/relay-app-#$(Build.BuildId).zip
-      displayName: 'Upload application files to artifact repository'
-      artifact: app
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact to Azure DevOps'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'app'
+        publishLocation: 'Container'
 
-    - upload: $(System.DefaultWorkingDirectory)/infra
-      displayName: 'Upload Azure ARM infrastructure files to artifact repository'
-      artifact: infra
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact to Azure DevOps'
+      inputs:
+        PathtoPublish: '$(System.DefaultWorkingDirectory)/infra'
+        ArtifactName: 'infra'
+        publishLocation: 'Container'
 
 - stage: Deployment
   displayName: 'Deploy application'
