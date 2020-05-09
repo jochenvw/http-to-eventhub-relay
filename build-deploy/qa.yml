@@ -1,0 +1,51 @@
+# Node.js Function App to Linux on Azure
+# Build a Node.js function app and deploy it to Azure as a Linux function app.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+
+trigger:
+- master
+
+variables:
+  vmImageName: 'ubuntu-latest'
+
+stages:
+- stage: QA
+  displayName: Quality Assurance
+  jobs:
+  - job: QA
+    displayName: QA
+    pool:
+      vmImage: $(vmImageName)
+
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '12.0'
+      displayName: 'Install Node.js'
+
+    - script: |
+        if [ -f extensions.csproj ]
+        then
+            dotnet build extensions.csproj --runtime ubuntu.16.04-x64 --output ./bin
+        fi
+      displayName: 'Build extensions'
+
+    - script: |
+        npm install
+        npm run jshint
+      displayName: 'Running JSHint on function code'
+      workingDirectory: '$(System.DefaultWorkingDirectory)/src/functions'
+
+    - task: AzureResourceManagerTemplateDeployment@3
+      displayName: 'Validate ARM template'
+      inputs:
+        deploymentScope: 'Resource Group'
+        azureResourceManagerConnection: '$(serviceConnection)'
+        subscriptionId: '$(subscriptionId)'
+        action: 'Create Or Update Resource Group'
+        resourceGroupName: 'jvw-relay-dev'
+        location: 'West Europe'
+        templateLocation: 'Linked artifact'
+        csmFile: '$(System.DefaultWorkingDirectory)/infra/infra.json'
+        deploymentMode: 'Validation'
