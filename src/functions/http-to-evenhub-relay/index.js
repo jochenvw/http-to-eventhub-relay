@@ -1,8 +1,8 @@
 module.exports = async function (context, req) {
     const { EventHubProducerClient } = require("@azure/event-hubs");
 
-    const eventHubbConnectionString = process.env["EVENTHUB_CONNECTION_STRING"];
-    const eventHub = process.env["EVENTHUB"];
+    const eventHubbConnectionString = process.env.EVENTHUB_CONNECTION_STRING;
+    const eventHub = process.env.EVENTHUB;
 
     context.log('JavaScript HTTP trigger function processed a request.');
 
