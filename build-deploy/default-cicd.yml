@@ -80,7 +80,7 @@ stages:
       - task: Bash@3
         inputs:
           targetType: 'inline'
-          script: 'tree -d $(System.ArtifactsDirectory)'
+          script: 'tree $(System.ArtifactsDirectory)'
 
       - task: AzureResourceManagerTemplateDeployment@3
         displayName: 'Deploy Azure resources'
