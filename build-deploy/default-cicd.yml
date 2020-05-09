@@ -82,4 +82,4 @@ stages:
           azureSubscription: '$(serviceConnection)'
           appType: 'functionAppLinux'
           appName: 'jvw-relay-func-dev'
-          package: '$(System.ArtifactsDirectory)/relay-app-#$(Build.BuildId).zip'
+          package: '$(System.ArtifactsDirectory)/*.zip'
