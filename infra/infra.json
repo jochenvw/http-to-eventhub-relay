@@ -2,18 +2,78 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "resource-prefix": {
+            "type": "string",
+            "defaultValue": "jvw",
+            "metadata": {
+                "description": "Prefix used for resource names - typically project indicator"
+            }
+        },
+        "resource-postfix": {
+            "type": "string",
+            "defaultValue": "dev",
+            "metadata": {
+                "description": "postfix used for resource names - typically environment indicator"
+            }
+        }
     },
     "functions": [
     ],
     "variables": {
-        "resource-functionstorage-name": "jvwrelayfunctionstore",
-        "resource-functionapp-name": "jvw-relay-function-dev",
-        "resource-appinsights-name": "jvw-relay-appinsights-dev",
-        "resource-functionapp-plan-name": "jvw-relay-function-host"
+        "resource-functionstorage-name": "[concat(parameters('resource-prefix'),'','relayfuncstore','',parameters('resource-postfix'))]",
+        "resource-functionapp-name": "[concat(parameters('resource-prefix'),'-','relay-func','-',parameters('resource-postfix'))]",
+        "resource-appinsights-name": "[concat(parameters('resource-prefix'),'-','relay-insights','-',parameters('resource-postfix'))]",
+        "resource-functionapp-plan-name": "[concat(parameters('resource-prefix'),'-','relay-func-host','-',parameters('resource-postfix'))]",
+        "resource-eventhub-name": "iotmessages",
+        "resource-eventhub-namespace-name": "[concat(parameters('resource-prefix'),'-','relay-eventhub','-',parameters('resource-postfix'))]"
     },
     "resources": [
-
-          {
+        {
+            "type": "Microsoft.EventHub/namespaces",
+            "apiVersion": "2017-04-01",
+            "name": "[variables('resource-eventhub-namespace-name')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Basic",
+                "tier": "Basic",
+                "capacity": 1
+            },
+            "properties": {
+                "isAutoInflateEnabled": false,
+                "maximumThroughputUnits": 0,
+                "zoneRedundant": false
+            }
+        },
+        {
+            "name": "[concat(variables('resource-eventhub-namespace-name'),'/',variables('resource-eventhub-name'))]",
+            "type": "Microsoft.EventHub/namespaces/eventhubs",
+            "apiVersion": "2017-04-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "messageRetentionInDays": 1,
+                "partitionCount": 1,
+                "status": "Active"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces', variables('resource-eventhub-namespace-name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/eventhubs/authorizationRules",
+            "apiVersion": "2017-04-01",
+            "name": "[concat(variables('resource-eventhub-namespace-name'), '/', variables('resource-eventhub-name'), '/', 'relay-function-push')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('resource-eventhub-namespace-name'), variables('resource-eventhub-name'))]",
+                "[resourceId('Microsoft.EventHub/namespaces', variables('resource-eventhub-namespace-name'))]"
+            ],
+            "properties": {
+                "rights": [
+                    "Send"
+                ]
+            }
+        },
+        {
             "apiVersion": "2018-11-01",
             "name": "[variables('resource-functionapp-name')]",
             "type": "Microsoft.Web/sites",
@@ -22,7 +82,8 @@
             "dependsOn": [
                 "[concat('Microsoft.insights/components/', variables('resource-appinsights-name'))]",
                 "[concat('Microsoft.Web/serverfarms/', variables('resource-functionapp-plan-name'))]",
-                "[concat('Microsoft.Storage/storageAccounts/', variables('resource-functionstorage-name'))]"
+                "[concat('Microsoft.Storage/storageAccounts/', variables('resource-functionstorage-name'))]",
+                "[concat('Microsoft.EventHub/namespaces/', variables('resource-eventhub-namespace-name'),'/eventhubs/', variables('resource-eventhub-name'),'/authorizationRules/relay-function-push')]"
             ],
             "properties": {
                 "name": "[variables('resource-functionapp-name')]",
@@ -47,6 +108,14 @@
                         {
                             "name": "AzureWebJobsStorage",
                             "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('resource-functionstorage-name'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('resource-functionstorage-name')), '2019-06-01').keys[0].value,';EndpointSuffix=','core.windows.net')]"
+                        },
+                        {
+                            "name": "EVENTHUB_CONNECTION_STRING",
+                            "value": "[listkeys(resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('resource-eventhub-namespace-name'), variables('resource-eventhub-name'), 'relay-function-push'), '2015-08-01').primaryConnectionString]"
+                        },
+                        {
+                            "name": "EVENTHUB",
+                            "value": "[variables('resource-eventhub-name')]"
                         }
                     ],
                     "linuxFxVersion": "Node|12"

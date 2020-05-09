@@ -1,4 +1,0 @@
-az group create --name jvw-relay --location westeurope
-az group deployment create --resource-group jvw-relay --template-file ./infra.json
-
-func azure functionapp publish jvw-relay-function-dev
