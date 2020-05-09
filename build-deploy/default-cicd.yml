@@ -62,9 +62,16 @@ stages:
       - task: DownloadBuildArtifacts@0
         inputs:
           buildType: 'current'
-          artifactName: 'drop'
+          artifactName: 'app'
           downloadType: 'single'
-          downloadPath: '$(System.ArtifactsDirectory)'
+          downloadPath: '$(System.ArtifactsDirectory)/app'
+
+      - task: DownloadBuildArtifacts@0
+        inputs:
+          buildType: 'current'
+          artifactName: 'infra'
+          downloadType: 'single'
+          downloadPath: '$(System.ArtifactsDirectory)/infra'
 
       - task: AzureResourceManagerTemplateDeployment@3
         displayName: 'Deploy Azure resources'
@@ -76,7 +83,7 @@ stages:
           resourceGroupName: 'jvw-relay-dev'
           location: 'West Europe'
           templateLocation: 'Linked artifact'
-          csmFile: '$(System.DefaultWorkingDirectory)/infra/infra.json'
+          csmFile: '$(System.ArtifactsDirectory)/infra/infra.json'
           deploymentMode: 'Complete'
 
       - task: AzureFunctionApp@1
