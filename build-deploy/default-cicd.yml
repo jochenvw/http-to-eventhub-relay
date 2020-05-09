@@ -45,10 +45,10 @@ stages:
         rootFolderOrFile: '$(System.DefaultWorkingDirectory)/src/functions'
         includeRootFolder: false
         archiveType: zip
-        archiveFile: $(Build.ArtifactStagingDirectory)/app-#$(Build.BuildId).zip
+        archiveFile: $(Build.ArtifactStagingDirectory)/relay-app-#$(Build.BuildId).zip
         replaceExistingArchive: true
 
-    - upload: $(Build.ArtifactStagingDirectory)/app-#$(Build.BuildId).zip
+    - upload: $(Build.ArtifactStagingDirectory)/relay-app-#$(Build.BuildId).zip
       artifact: drop
 
 - stage: Deployment
@@ -56,6 +56,13 @@ stages:
   jobs:
     - job : DEV
       steps:
+      - task: DownloadBuildArtifacts@0
+        inputs:
+          buildType: 'current'
+          artifactName: 'drop'
+          downloadType: 'single'
+          downloadPath: '$(System.ArtifactsDirectory)'
+
       - task: AzureResourceManagerTemplateDeployment@3
         displayName: 'Deploy Azure resources'
         inputs:
@@ -70,8 +77,9 @@ stages:
           deploymentMode: 'Complete'
 
       - task: AzureFunctionApp@1
+        displayName: 'Deploy function app'
         inputs:
-          azureSubscription: 'Microsoft Azure Internal Consumption (5fcb0d36-846f-4721-86e9-47f6c43494fd)'
+          azureSubscription: '$(serviceConnection)'
           appType: 'functionAppLinux'
           appName: 'jvw-relay-func-dev'
-          package: '$(Build.ArtifactStagingDirectory)/app-#$(Build.BuildId).zip'
+          package: '$(System.ArtifactsDirectory)/relay-app-#$(Build.BuildId).zip'
