@@ -24,7 +24,7 @@
         "resource-functionapp-name": "[concat(parameters('resource-prefix'),'-','relay-func','-',parameters('resource-postfix'))]",
         "resource-appinsights-name": "[concat(parameters('resource-prefix'),'-','relay-insights','-',parameters('resource-postfix'))]",
         "resource-functionapp-plan-name": "[concat(parameters('resource-prefix'),'-','relay-func-host','-',parameters('resource-postfix'))]",
-        "resource-eventhub-name": "iotmessages",
+        "resource-eventhub-name": "loramessages",
         "resource-eventhub-namespace-name": "[concat(parameters('resource-prefix'),'-','relay-eventhub','-',parameters('resource-postfix'))]"
     },
     "resources": [

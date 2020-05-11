@@ -1,31 +1,19 @@
 module.exports = async function (context, req) {
-    const { EventHubProducerClient } = require("@azure/event-hubs");
+    context.log('Processing incoming LORA message ...');
 
-    const eventHubbConnectionString = process.env.EVENTHUB_CONNECTION_STRING;
-    const eventHub = process.env.EVENTHUB;
-
-    context.log('JavaScript HTTP trigger function processed a request.');
-
-    if (req.query.name || (req.body && req.body.name)) {
-        const producerClient = new EventHubProducerClient(eventHubbConnectionString, eventHub);
-        const eventDataBatch = await producerClient.createBatch();
-        let wasAdded = eventDataBatch.tryAdd({ body: req.body });
-        if (!wasAdded) {
-            throw "Error trying to add event to batch";
-        }
-
-        await producerClient.sendBatch(eventDataBatch);
-        await producerClient.close();
-
-        context.res = {
-            // status: 200, /* Defaults to 200 */
-            body: "Message posted to queue !"
+    if(req.body.device && req.body.device.deviceId) {
+        context.bindings.outputEventHubMessage = req.body;
+        context.bindings.res = {
+            status: 200,
+            body: "LORA message processed successfully!"
         };
-    }
-    else {
-        context.res = {
+        context.log('LORA message processed successfully!');
+    } else {
+        context.bindings.res = {
             status: 400,
-            body: "Please pass a valid body in the request"
+            body: "Please provide device property inside message body with nested deviceId property"
         };
+        context.log('LORA message processing failed ' + req.body);
     }
+    context.done();
 };
