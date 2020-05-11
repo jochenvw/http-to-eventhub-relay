@@ -7,8 +7,6 @@
   },
   "author": "",
   "dependencies": {
-    "@azure/event-hubs": "^5.2.0",
-    "@azure/identity": "^1.0.3"
   },
   "devDependencies": {
     "jshint": "^2.11.0"
